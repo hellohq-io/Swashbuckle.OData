@@ -166,6 +166,31 @@ namespace Swashbuckle.OData.Tests
         }
 
         [Test]
+        public async Task It_supports_actions_without_parameters()
+        {
+            using (WebApp.Start(HttpClientUtils.BaseAddress, appBuilder => Configuration(appBuilder, typeof(SuppliersController))))
+            {
+                // Arrange
+                var httpClient = HttpClientUtils.GetHttpClient(HttpClientUtils.BaseAddress);
+                // Verify that the OData route in the test controller is valid
+                var result = await httpClient.PostAsync("/odata/Suppliers/Default.CreateWithoutParameter", new StringContent(""));
+                result.IsSuccessStatusCode.Should().BeTrue();
+
+                // Act
+                var swaggerDocument = await httpClient.GetJsonAsync<SwaggerDocument>("swagger/docs/v1");
+
+                // Assert
+                PathItem pathItem;
+                swaggerDocument.paths.TryGetValue("/odata/Suppliers/Default.CreateWithoutParameter", out pathItem);
+                pathItem.Should().NotBeNull();
+                pathItem.post.Should().NotBeNull();
+                pathItem.post.parameters.Should().BeNull();
+
+                await ValidationUtils.ValidateSwaggerJson();
+            }
+        }
+
+        [Test]
         public async Task It_supports_actions_against_an_entity()
         {
             using (WebApp.Start(HttpClientUtils.BaseAddress, appBuilder => Configuration(appBuilder, typeof(SuppliersController))))
@@ -241,6 +266,9 @@ namespace Swashbuckle.OData.Tests
             createWithEnum.ReturnsFromEntitySet<Supplier>("Suppliers");
             createWithEnum.Parameter<MyEnum?>("EnumValue");
 
+           var createWithoutParameter = entityType.Collection.Action("CreateWithoutParameter");
+           createWithoutParameter.ReturnsFromEntitySet<Supplier>("Suppliers");
+
             var postArray = entityType.Collection.Action("PostArrayOfSuppliers");
             postArray.ReturnsCollectionFromEntitySet<Supplier>("Suppliers");
             postArray.CollectionParameter<SupplierDto>("suppliers");
@@ -307,6 +335,13 @@ namespace Swashbuckle.OData.Tests
         [HttpPost]
         [ResponseType(typeof(Supplier))]
         public IHttpActionResult CreateWithEnum(ODataActionParameters parameters)
+        {
+            return Created(new Supplier { Id = 1 });
+        }
+
+        [HttpPost]
+        [ResponseType(typeof(Supplier))]
+        public IHttpActionResult CreateWithoutParameter()
         {
             return Created(new Supplier { Id = 1 });
         }
