@@ -13,10 +13,9 @@ namespace Swashbuckle.OData.Descriptions
             var required = swaggerParameter.required;
             Contract.Assume(required != null);
 
-            if (swaggerParameter.@in == "body" && swaggerParameter.schema != null && swaggerParameter.schema.type == "object")
+            if (IsODataActionParameter(swaggerParameter) && HasODataActionParameterDescription(actionDescriptor))
             {
-                var odataActionParametersDescriptor = actionDescriptor.GetParameters().SingleOrDefault(descriptor => descriptor.ParameterType == typeof (ODataActionParameters));
-                Contract.Assume(odataActionParametersDescriptor != null);
+                var odataActionParametersDescriptor = GetODataActionParameterDescription(actionDescriptor);
                 return new ODataActionParameterDescriptor(odataActionParametersDescriptor.ParameterName, typeof(ODataActionParameters), !required.Value, swaggerParameter.schema, odataActionParametersDescriptor)
                 {
                     Configuration = actionDescriptor.ControllerDescriptor.Configuration,
@@ -24,6 +23,21 @@ namespace Swashbuckle.OData.Descriptions
                 };
             }
             return null;
+        }
+
+        public static HttpParameterDescriptor GetODataActionParameterDescription(HttpActionDescriptor actionDescriptor)
+        {
+            return actionDescriptor.GetParameters().SingleOrDefault(descriptor => descriptor.ParameterType == typeof(ODataActionParameters));
+        }
+
+        public static bool HasODataActionParameterDescription(HttpActionDescriptor actionDescriptor)
+        {
+            return GetODataActionParameterDescription(actionDescriptor) != null;
+        }
+
+        public static bool IsODataActionParameter(Parameter parameter)
+        {
+            return parameter.@in == "body" && parameter.schema != null && parameter.schema.type == "object";
         }
     }
 }

@@ -126,5 +126,7 @@ You'll need:
 
 1. Visual Studio 2015
 2. [Code Contracts](https://visualstudiogallery.msdn.microsoft.com/1ec7db13-3363-46c9-851f-1ce455f66970)
+3. [NuGet Package Project](https://visualstudiogallery.msdn.microsoft.com/fbe9b9b8-34ae-47b5-a751-cb71a16f7e96) to generate the NuGet package.
+4. [NUnit Test Adapter](https://marketplace.visualstudio.com/items?itemName=NUnitDevelopers.NUnitTestAdapter) to run the tests (`Warning`: Do not install NUnit 3, this project requires NUnit 2!)
 
 If you submit an enhancement or bug fix, please include a unit test similar to [this](https://github.com/rbeauchamp/Swashbuckle.OData/blob/master/Swashbuckle.OData.Tests/Fixtures/FunctionTests.cs#L20) that verifies the change. Let's shoot for 100% unit test [coverage](https://coveralls.io/github/rbeauchamp/Swashbuckle.OData?branch=master) of the code base.

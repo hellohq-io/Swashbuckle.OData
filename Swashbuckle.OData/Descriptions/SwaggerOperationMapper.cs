@@ -5,6 +5,7 @@ using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Description;
 using Swashbuckle.Swagger;
+using System.Web.OData;
 
 namespace Swashbuckle.OData.Descriptions
 {
@@ -43,6 +44,7 @@ namespace Swashbuckle.OData.Descriptions
                 .Select((parameter, index) => GetParameterDescription(parameter, index, actionDescriptor))
                 // Concat reflected parameter descriptors to ensure that parameters are not missed
                 // e.g., parameters not described by or derived from the EDM model.
+                .Where(parameterDescription => parameterDescription != null)
                 .Concat(CreateParameterDescriptions(actionDescriptor))
                 .Distinct(new ApiParameterDescriptionEqualityComparer())
                 .ToList();
@@ -51,6 +53,9 @@ namespace Swashbuckle.OData.Descriptions
         private ApiParameterDescription GetParameterDescription(Parameter parameter, int index, HttpActionDescriptor actionDescriptor)
         {
             var httpParameterDescriptor = GetHttpParameterDescriptor(parameter, index, actionDescriptor);
+
+            if (httpParameterDescriptor == null)
+                return null;
 
             return new SwaggerApiParameterDescription
             {
@@ -65,12 +70,13 @@ namespace Swashbuckle.OData.Descriptions
         private HttpParameterDescriptor GetHttpParameterDescriptor(Parameter parameter, int index, HttpActionDescriptor actionDescriptor)
         {
             Contract.Requires(_parameterMappers != null);
-            Contract.Ensures(Contract.Result<HttpParameterDescriptor>() != null);
-            Contract.Ensures(Contract.Result<HttpParameterDescriptor>().Configuration != null);
 
             var result = _parameterMappers
                 .Select(mapper => mapper.Map(parameter, index, actionDescriptor))
                 .FirstOrDefault(httpParameterDescriptor => httpParameterDescriptor != null);
+
+            if (MapToODataActionParameter.IsODataActionParameter(parameter) && !MapToODataActionParameter.HasODataActionParameterDescription(actionDescriptor))
+                return null;
 
             Contract.Assume(result != null);
             Contract.Assume(result.Configuration != null);
